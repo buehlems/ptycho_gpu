@@ -339,7 +339,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
 
     // call petSC to calc X
     // copy result from X to pyX
-    //  mpiHelloWorld();
+    mpiPETSc(Adata,Aindex,Aiptr,B,X,nAindex,mB,nAiptr,nB);
     free_Carrayptrs(B);
     free_Carrayptrs(X);
 
@@ -357,8 +357,15 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
 #include "ptycho_petsc.h"
 
 
-int mpiHelloWorld() {
-
+int mpiPETSc(PetscScalar * Adata,int * Aindex,int * Aiptr,double ** B, PetscScalar ** X,int nzA, int rA, int cA,int cB) {
+    /* nzA: number non-zeros = length Aindex (length Adata= 2*nzA)
+     rA,cA: row/column number in A; rA=rowB=length Aiptr; cA=rowX;
+     cB: colunm number in B; cB=columnX
+     */
+    int rB=rA;
+    int rX=cA;
+    int nAiptr=rA;
+    int cX=cB;
 // Initialize the MPI environment
 
 	MPI_Init(NULL, NULL);
@@ -380,15 +387,15 @@ int mpiHelloWorld() {
 /* // petsc */
 
 	// ptycho_setup_petsc(argc, argv);
-	ptycho_setup_petsc(NULL, NULL);
+	ptycho_setup_petsc(rA, cA);
 
-	ptycho_read_and_fill_Matrix();
+	ptycho_read_and_fill_Matrix(Adata,Aindex,Aiptr,nAiptr);
 
-	ptycho_read_and_set_RHS();
+	ptycho_read_and_set_RHS((PetscScalar **) B);
 
 	ptycho_petsc_solve();
 
-	ptycho_petsc_get_solution ();
+	ptycho_petsc_get_solution (X);
 
 // Finalize the MPI environment.
 	MPI_Finalize();
