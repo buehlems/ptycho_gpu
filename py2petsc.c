@@ -30,6 +30,9 @@ int  not_doublevector(PyArrayObject *vec)
 
     if (vec->descr->type_num != NPY_DOUBLE || vec->nd != 1)
     {
+	printf("Python error: In not_doublevector: array must be of type double and 1 dimensional (n).\n");
+	printf("type is %d expected %d, dimension is %d expected 2\n",vec->descr->type_num,NPY_DOUBLE,vec->nd);
+	printf("to verify type use Python command print_NPY.\n");
 
 	PyErr_SetString(PyExc_ValueError,
 			"Array must be of type Float and 1 dimensional (n).");
@@ -48,6 +51,9 @@ int  not_intvector(PyArrayObject *vec)
 
     if (vec->descr->type_num != NPY_INT || vec->nd != 1)
     {
+	printf("Python error: In not_intvector: array must be of type int and 1 dimensional (n).\n");
+	printf("type is %d expected %d, dimension is %d expected 2\n",vec->descr->type_num,NPY_INT,vec->nd);
+	printf("to verify type use Python command print_NPY.\n");
 	PyErr_SetString(PyExc_ValueError,
 			"Array must be of type int and 1 dimensional (n).");
 	
@@ -64,9 +70,12 @@ int  not_intvector(PyArrayObject *vec)
     return 1 if an error and raise exception */ 
 int  not_doublematrix(PyArrayObject *mat)  {
 	if (mat->descr->type_num != NPY_DOUBLE || mat->nd != 2)  {
-		PyErr_SetString(PyExc_ValueError,
-			"In not_doublematrix: array must be of type Float and 2 dimensional (n x m).");
-		return 1;  }
+	    printf("Python error: In not_doublematrix: array must be of type Float and 2 dimensional (n x m).\n");
+	    printf("type is %d expected %d, dimension is %d expected 2\n",mat->descr->type_num,NPY_DOUBLE,mat->nd);
+	    printf("to verify type use Python command print_NPY.\n");
+	    PyErr_SetString(PyExc_ValueError,
+			    "In not_doublematrix: array must be of type Float and 2 dimensional (n x m).");
+	    return 1;  }
 	return 0;
 }
 
