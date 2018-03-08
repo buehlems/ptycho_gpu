@@ -2,10 +2,11 @@
 //      https://docs.python.org/2/extending/building.html#building
 //and   https://docs.python.org/2/install/
 //http://scipy-cookbook.readthedocs.io/items/C_Extensions_NumPy_arrays.html
-
 #include <Python.h>
 // #include "/usr/lib64/python2.6/site-packages/numpy/core/include/numpy/arrayobject.h"
 #include <numpy/arrayobject.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int mpiHelloWorld(void);
 
@@ -206,13 +207,14 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     PyArrayObject *pyB = NULL;
     PyArrayObject *pyX = NULL;
 
-
+    int verbose=getenv("PY2PETSCVERBOSE") == NULL ? 0:1;
+    
     if (!PyArg_ParseTuple(args, "O!O!O!O!O!", &PyArray_Type, &pyAdata, &PyArray_Type, &pyAindex, &PyArray_Type, &pyAiptr, &PyArray_Type, &pyB, &PyArray_Type, &pyX)) 
 	return NULL;
 
     // convert py arrays to C arrays
     // Adata
-    printf("create Adata\n");
+    if(verbose) printf("create Adata\n");
     
     double *Adata;
     int nAdata;
@@ -228,7 +230,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     dimsAdata[0]=nAdata;
 
     // Aindex
-    printf("create Aindex\n");
+    if(verbose) printf("create Aindex\n");
     int *Aindex;
     int nAindex;
     npy_intp dimsAindex[2];
@@ -243,7 +245,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     dimsAindex[0]=nAindex;
 
     // Aiptr
-    printf("create Aiptr\n");
+    if(verbose) printf("create Aiptr\n");
 
     int *Aiptr;
     int nAiptr;
@@ -259,7 +261,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     dimsAiptr[0]=nAiptr;
 
     // B
-    printf("create B\n");
+    if(verbose) printf("create B\n");
 
     double **B;
     int rB,cB;
@@ -274,7 +276,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     cB=pyB->dimensions[1];
 
     // result X	
-    printf("create X\n");
+    if(verbose) printf("create X\n");
     double **X;
     int rX,cX;
     
@@ -289,63 +291,63 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     cX=pyX->dimensions[1];
 
     X =pymatrix_to_Carrayptrs(pyX);
+
+    if(verbose)
+    {
+	
+	// printf("vector size=%d\n",r);
+	// print arrays
+	int i,j;
+
+	printf("Adata\n");
+	printf("n=%d\n",nAdata);
+	for(i=0; i<nAdata; i++)
+	{
+	    printf("%2.2f ",Adata[i]);
+	}
+	printf("\n");
+
+	printf("Aindex\n");
+	printf("n=%d\n",nAindex);
+	for(j=0; j<nAindex; j++)
+	{
+	    printf("%d ",Aindex[j]);
+	}
+	printf("\n");
+
+	printf("Aiptr\n");
+	printf("n=%d\n",nAiptr);
+	for(j=0; j<nAiptr; j++)
+	{
+	    printf("%d ",Aiptr[j]);
+	}
+	printf("\n");
+
+	printf("B\n");
+	printf("r=%d c=%d\n",rB,cB);
+	for(i=0; i<rB; i++)
+	{
+	    for(j=0; j<cB; j++)
+	    {
+		printf("%2.2f ",B[i][j]);
+	    }
+	    printf("\n");
+	}
+	printf("\n");
+
+	printf("X\n");
+	printf("r=%d c=%d\n",rX,cX);
+	for(i=0; i<rX; i++)
+	{
+	    for(j=0; j<cX; j++)
+	    {
+		printf("%2.2f ",X[i][j]);
+	    }
+	    printf("\n");
+	}
+	printf("\n");
+    }
     
-    // printf("vector size=%d\n",r);
-    // print arrays
-    int i,j;
-
-    printf("Adata\n");
-    printf("n=%d\n",nAdata);
-    for(i=0; i<nAdata; i++)
-    {
-	printf("%2.2f ",Adata[i]);
-    }
-    printf("\n");
-
-    printf("Aindex\n");
-    printf("n=%d\n",nAindex);
-    for(j=0; j<nAindex; j++)
-    {
-	printf("%d ",Aindex[j]);
-    }
-    printf("\n");
-
-    printf("Aiptr\n");
-    printf("n=%d\n",nAiptr);
-    for(j=0; j<nAiptr; j++)
-    {
-	printf("%d ",Aiptr[j]);
-    }
-    printf("\n");
-
-    printf("B\n");
-    printf("r=%d c=%d\n",rB,cB);
-    for(i=0; i<rB; i++)
-    {
-	for(j=0; j<cB; j++)
-	{
-	    printf("%2.2f ",B[i][j]);
-	}
-	printf("\n");
-    }
-    printf("\n");
-
-    printf("X\n");
-    printf("r=%d c=%d\n",rX,cX);
-    for(i=0; i<rX; i++)
-    {
-	for(j=0; j<cX; j++)
-	{
-	    printf("%2.2f ",X[i][j]);
-	}
-	printf("\n");
-    }
-    printf("\n");
-
-    X[0][0]=1.0;
-    X[0][1]=2.0;
-    X[rX-1][cX-1]=5.0;
-
     // call petSC to calc X
     // copy result from X to pyX
     mpiPETSc(Adata,Aindex,Aiptr,B,X,nAindex,nAiptr-1,rX,cB);
