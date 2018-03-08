@@ -17,4 +17,8 @@ mtype = 'periodic'
 A = make_sp_cof(l1, d1, gridx, f1, gridx.max()+1)
 X = np.zeros([A.shape[1],2*B.shape[1]])
 
-p2p.py2petsc(A.data,A.indices,A.indptr,B,X)
+A_data = np.zeros((2 * len(A.data)))
+A_data[0::2] = np.real(A.data)
+A_data[1::2] = np.imag(A.data)
+
+p2p.py2petsc(A_data,A.indices,A.indptr,B,X)
