@@ -2,6 +2,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 from scipy.sparse.linalg import eigs
+import p2p
 import matplotlib.pylab as plt
 import scipy.sparse as aps
 from scipy.io import loadmat
@@ -65,6 +66,12 @@ def reconEBAS2d(y, f1, f2, gridx, gridy, mtype):
         print('error')
     a = make_sp_cof(l1, d1, gridx, f1, M)
     y = np.reshape(y, (gridx.size * d1, gridy.size * d2), order='F')
+    # replace the spsolve with p2p
+    a_c = np.zeros((2 * len(a.data)))
+    a_c[0::2] = np.real(a.data)
+    a_c[1::2] = np.imag(a.data)
+    p2p.py2petsc(a_c, a.indices, a.indptr, y)
+    # replace the spsolve with p2p
     x = spsolve(a, y)
     if symFilters == False:
         a = make_sp_cof(l2, d2, gridy, f2, N)
