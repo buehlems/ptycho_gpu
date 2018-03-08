@@ -333,10 +333,13 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     }
     printf("\n");
 
+    X[0][0]=1.0;
+    X[0][1]=2.0;
+    X[nX-1][mX-1]=5.0;
+
     // call petSC to calc X
     // copy result from X to pyX
-     mpiHelloWorld();
-    
+    //  mpiHelloWorld();
     free_Carrayptrs(B);
     free_Carrayptrs(X);
 

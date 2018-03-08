@@ -15,6 +15,7 @@ print("A.data=",A.data)
 print("A.indices=",A.indices)
 print("A.iptr=",A.indptr)
 print("B=",B)
+print("X=",X)
 
 # print("printNPY")
 # p2p.printNPY()
