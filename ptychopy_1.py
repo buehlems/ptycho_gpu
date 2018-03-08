@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
@@ -5,8 +6,15 @@ from scipy.sparse.linalg import eigs
 import p2p
 import matplotlib.pylab as plt
 import scipy.sparse as aps
-from scipy.io import loadmat
 
+def filters(m, a = 4, delta = 10):
+   if m == 'Ptycho':
+       m = np.array([])
+       m = np.exp(np.transpose(-np.array(range(1, delta+1)))/a)/(2*delta-1)**(1/4)
+   else:
+       m = m.reshape((m.size, 1))
+   f = np.reshape(np.conj(m), (m.size, 1))*np.exp(2*math.pi*1j*(np.reshape((np.array(range(m.size))), (m.size, 1))*np.array(range(1-delta,delta)))/(2*delta-1))
+   return f
 
 def pDiag(s, k):
     k = np.reshape(k, (1, k.shape[0]))
