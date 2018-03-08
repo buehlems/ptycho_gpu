@@ -21,4 +21,6 @@ A_data = np.zeros((2 * len(A.data)))
 A_data[0::2] = np.real(A.data)
 A_data[1::2] = np.imag(A.data)
 
+B = np.reshape(B, (gridx.size * d1, gridx.size * d1), order='F')
+
 p2p.py2petsc(A_data,A.indices,A.indptr,B,X)
