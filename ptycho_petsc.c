@@ -15,31 +15,31 @@
 #include <stdlib.h>
 
 
-int   M,N;
+int   ROWS,COLS;
 Mat   A;
 KSP   ksp;          /* linear solver context */
 PC    precond;
 Vec   rhs;
 Vec   sol;
 
-void ptycho_setup_petsc(int M,int N) {
+void ptycho_setup_petsc(int ROWS,int COLS) {
 
 	printf("here is init_petsc\n");
 
-	printf ("matrix size %d %d \n",M,N);
+	printf ("matrix size %d %d \n",ROWS,COLS);
 	PetscInitialize(NULL, NULL, NULL, NULL);
 
 // Setup Matrix
 
 	MatCreate(PETSC_COMM_WORLD,&A);
-	MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,M, N);
+	MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,ROWS, COLS);
 	MatSetFromOptions(A);
 	MatSetUp(A);
 
 // Setup rhs and solution vector
 
-   VecCreateMPI (PETSC_COMM_WORLD, PETSC_DECIDE, M, &rhs);
-   VecCreateMPI (PETSC_COMM_WORLD, PETSC_DECIDE, N, &sol);
+   VecCreateMPI (PETSC_COMM_WORLD, PETSC_DECIDE, ROWS, &rhs);
+   VecCreateMPI (PETSC_COMM_WORLD, PETSC_DECIDE, COLS, &sol);
 
 // Setup ksp
 
@@ -56,7 +56,7 @@ void ptycho_read_and_fill_Matrix (PetscScalar * values,int * indices,int * row_p
 
 	int    i,irow;
 	int    nval;
-	size_t max_size = M*sizeof(int);
+	size_t max_size = ROWS*sizeof(int);
 	/* int    *row_pointer;
 	int    *indices;
 	PetscScalar *values;
@@ -87,13 +87,10 @@ void ptycho_read_and_fill_Matrix (PetscScalar * values,int * indices,int * row_p
 		printf("file not found:  a_data.bin\n");
 		MPI_Abort(MPI_COMM_WORLD, -1);
 	}*/
-
+    printf("rows %d\n",rows);
    for (irow=0; irow<rows; irow++ ) {
-   	if(irow <rows-1 ) {
    		nval = row_pointer[irow+1] - row_pointer[irow];
-   	} else {
-   		nval = N+1 - row_pointer[irow];
-   	}
+
    	//size_t ind_nval = read (fd_ind, indices, nval*sizeof(int));
    //	size_t val_nval = read (fd_dat, values, nval*sizeof(double complex));
    	MatSetValues (A, 1, &irow, nval, &indices[irow], &values[irow], INSERT_VALUES);
@@ -111,13 +108,13 @@ void ptycho_read_and_fill_Matrix (PetscScalar * values,int * indices,int * row_p
 void ptycho_read_and_set_RHS (PetscScalar ** B) {
 
 	int    i;
-	size_t max_size = M*sizeof(double);
+	size_t max_size = ROWS*sizeof(double);
 	double *buf;
 	int    *indices;
 	PetscScalar *rhs_val;
 
 	//buf     = malloc(max_size);
-	rhs_val= malloc(M*sizeof(PetscScalar));
+	rhs_val= malloc(ROWS*sizeof(PetscScalar));
 
 	/* int fd = open("data/b_vector.bin", O_RDONLY);
 	if(fd < 0)  {
@@ -130,13 +127,13 @@ void ptycho_read_and_set_RHS (PetscScalar ** B) {
 	printf ("RHS bytes read %ld %d %ld\n",bytes_read,rows,max_size*sizeof(double));
 	printf ("RHS values %f %f %f\n",buf[0],buf[1],buf[2]);
      */
-	indices = malloc(M*sizeof(int));
+	indices = malloc(ROWS*sizeof(int));
 
-	for (i=0; i<M; i++) {
+	for (i=0; i<ROWS; i++) {
 		indices[i] = i;
 		rhs_val[i] = (PetscScalar) B[0][i];          // convert double to double complex //use first only one column of B (vector case)
 	}
-   VecSetValues (rhs, M, indices, rhs_val, INSERT_VALUES);
+   VecSetValues (rhs, ROWS, indices, rhs_val, INSERT_VALUES);
 
    VecAssemblyBegin (rhs);
    VecAssemblyEnd   (rhs);
