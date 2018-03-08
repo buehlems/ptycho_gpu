@@ -95,10 +95,10 @@ void ptycho_read_and_fill_Matrix (PetscScalar * values,int * indices,int * row_p
    //	size_t val_nval = read (fd_dat, values, nval*sizeof(double complex));
    	MatSetValues (A, 1, &irow, nval, &indices[irow], &values[irow], INSERT_VALUES);
 
-   	if(irow < 10) printf ("rows %d %d %d %d %d\n",irow,row_pointer[irow],nval,nval,row_pointer[irow]);
+   	/*if(irow < 10) printf ("rows %d %d %d %d %d\n",irow,row_pointer[irow],nval,nval,row_pointer[irow]);
    	if(irow < 10) printf ("row indices %d %d %d %f + i%f\n",irow,nval,nval,creal(values[irow]),cimag(values[irow]));
+   */
    }
-
    MatAssemblyBegin (A, MAT_FINAL_ASSEMBLY);
    MatAssemblyEnd   (A, MAT_FINAL_ASSEMBLY);
 
@@ -131,7 +131,7 @@ void ptycho_read_and_set_RHS (PetscScalar ** B) {
 
 	for (i=0; i<ROWS; i++) {
 		indices[i] = i;
-		rhs_val[i] = (PetscScalar) B[0][i];          // convert double to double complex //use first only one column of B (vector case)
+		rhs_val[i] = (PetscScalar) B[32][i];          // convert double to double complex //use first only one column of B (vector case)
 	}
    VecSetValues (rhs, ROWS, indices, rhs_val, INSERT_VALUES);
 
@@ -167,7 +167,7 @@ void ptycho_petsc_solve (void) {
 // select solver and preconditioner
 
 	int solver_selected = BICG;
-	int pc_selected     = NOPC;
+	int pc_selected     = ILU;
 
 	int gmres_max_restart_iter = 20;
 
