@@ -198,7 +198,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     PyArrayObject *pyX = NULL;
 
 
-    if (!PyArg_ParseTuple(args, "O!O!O!O!", &PyArray_Type, &pyAdata, &PyArray_Type, &pyAindex, &PyArray_Type, &pyAiptr, &PyArray_Type, &pyB)) 
+    if (!PyArg_ParseTuple(args, "O!O!O!O!O!", &PyArray_Type, &pyAdata, &PyArray_Type, &pyAindex, &PyArray_Type, &pyAiptr, &PyArray_Type, &pyB, &PyArray_Type, &pyX)) 
 	return NULL;
 
     // convert py arrays to C arrays
@@ -267,20 +267,19 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     // result X	
     printf("create X\n");
     double **X;
-    npy_intp dimsX[2];
     int nX,mX;
     
-    // this is probably not right yet
-    dimsX[0]=nB;
-    dimsX[1]=mB;
-
-    pyX=(PyArrayObject *) PyArray_SimpleNew(2,dimsX,NPY_DOUBLE);
-    X =pymatrix_to_Carrayptrs(pyX);
+    if (not_doublematrix(pyX)){
+	printf("pyX is not a double matrix. Exit\n");
+	return NULL;
+    }
+    /* Change contiguous arrays into C * arrays   */
+    X=pymatrix_to_Carrayptrs(pyX);
     /* Get vector dimension. */
     nX=pyX->dimensions[0];
     mX=pyX->dimensions[1];
-    
 
+    X =pymatrix_to_Carrayptrs(pyX);
     
     // printf("vector size=%d\n",n);
     // print arrays
@@ -322,14 +321,29 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     }
     printf("\n");
 
+    printf("X\n");
+    printf("n=%d m=%d\n",nX,mX);
+    for(i=0; i<nX; i++)
+    {
+	for(j=0; j<mX; j++)
+	{
+	    printf("%2.2f ",X[i][j]);
+	}
+	printf("\n");
+    }
+    printf("\n");
+
     // call petSC to calc X
     // copy result from X to pyX
+     mpiHelloWorld();
+    
     free_Carrayptrs(B);
     free_Carrayptrs(X);
 
-    mpiHelloWorld();
 
-    return PyArray_Return(pyX);
+    // return PyArray_Return(pyX);
+    return Py_BuildValue("i", 1);
+
 }
 
 // MPI part

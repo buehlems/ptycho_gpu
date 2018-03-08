@@ -6,6 +6,9 @@ module load gcc/5.5.0
 # MPI needed to compile (for now), won't run:
 module unload openmpi/3.0.0-gnu5.5
 module load openmpi/2.1.0-gnu6.3
+
+module load petsc/3.8.3-gpu-complex
+
 module add  python/2.7.5-scipy
 
 export CC="mpicc -pthread"
