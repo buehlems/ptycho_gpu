@@ -167,7 +167,7 @@ void ptycho_petsc_solve (void) {
 // select solver and preconditioner
 
 	int solver_selected = BICG;
-	int pc_selected     = ILU;
+	int pc_selected     = NOPC;
 
 	int gmres_max_restart_iter = 20;
 
