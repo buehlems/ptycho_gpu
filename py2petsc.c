@@ -253,7 +253,7 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     printf("create B\n");
 
     double **B;
-    int nB,mB;
+    int rB,cB;
     if (not_doublematrix(pyB)){
 	printf("pyB is not a double matrix. Exit\n");
 	return NULL;
@@ -261,13 +261,13 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     /* Change contiguous arrays into C * arrays   */
     B=pymatrix_to_Carrayptrs(pyB);
     /* Get vector dimension. */
-    nB=pyB->dimensions[0];
-    mB=pyB->dimensions[1];
+    rB=pyB->dimensions[0];
+    cB=pyB->dimensions[1];
 
     // result X	
     printf("create X\n");
     double **X;
-    int nX,mX;
+    int rX,cX;
     
     if (not_doublematrix(pyX)){
 	printf("pyX is not a double matrix. Exit\n");
@@ -276,12 +276,12 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     /* Change contiguous arrays into C * arrays   */
     X=pymatrix_to_Carrayptrs(pyX);
     /* Get vector dimension. */
-    nX=pyX->dimensions[0];
-    mX=pyX->dimensions[1];
+    rX=pyX->dimensions[0];
+    cX=pyX->dimensions[1];
 
     X =pymatrix_to_Carrayptrs(pyX);
     
-    // printf("vector size=%d\n",n);
+    // printf("vector size=%d\n",r);
     // print arrays
     int i,j;
 
@@ -310,10 +310,10 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     printf("\n");
 
     printf("B\n");
-    printf("n=%d m=%d\n",nB,mB);
-    for(i=0; i<nB; i++)
+    printf("r=%d c=%d\n",rB,cB);
+    for(i=0; i<rB; i++)
     {
-	for(j=0; j<mB; j++)
+	for(j=0; j<cB; j++)
 	{
 	    printf("%2.2f ",B[i][j]);
 	}
@@ -322,10 +322,10 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     printf("\n");
 
     printf("X\n");
-    printf("n=%d m=%d\n",nX,mX);
-    for(i=0; i<nX; i++)
+    printf("r=%d c=%d\n",rX,cX);
+    for(i=0; i<rX; i++)
     {
-	for(j=0; j<mX; j++)
+	for(j=0; j<cX; j++)
 	{
 	    printf("%2.2f ",X[i][j]);
 	}
@@ -335,11 +335,11 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
 
     X[0][0]=1.0;
     X[0][1]=2.0;
-    X[nX-1][mX-1]=5.0;
+    X[rX-1][cX-1]=5.0;
 
     // call petSC to calc X
     // copy result from X to pyX
-    //  mpiHelloWorld();
+    mpiPETSc(Adata,Aindex,Aiptr,B,X,nAindex,nAiptr-1,rX,cB);
     free_Carrayptrs(B);
     free_Carrayptrs(X);
 
@@ -357,8 +357,15 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
 #include "ptycho_petsc.h"
 
 
-int mpiHelloWorld() {
-
+int mpiPETSc(PetscScalar * Adata,int * Aindex,int * Aiptr,double ** B, PetscScalar ** X,int nzA, int rA, int cA,int cB) {
+    /* nzA: number non-zeros = length Aindex (length Adata= 2*nzA)
+     rA,cA: row/column number in A; rA=rB=length Aiptr-1;
+     cA=rX;
+     cB: colunm number in B; cB=cX
+     */
+    int rB=rA;
+    int rX=cA;
+    int cX=cB;
 // Initialize the MPI environment
 
 	MPI_Init(NULL, NULL);
@@ -380,15 +387,15 @@ int mpiHelloWorld() {
 /* // petsc */
 
 	// ptycho_setup_petsc(argc, argv);
-	ptycho_setup_petsc(NULL, NULL);
+	ptycho_setup_petsc(rA, cA);
 
-	ptycho_read_and_fill_Matrix();
+	ptycho_read_and_fill_Matrix(Adata,Aindex,Aiptr,rA);
 
-	ptycho_read_and_set_RHS();
+	ptycho_read_and_set_RHS((PetscScalar **) B);
 
 	ptycho_petsc_solve();
 
-	ptycho_petsc_get_solution ();
+	ptycho_petsc_get_solution (X);
 
 // Finalize the MPI environment.
 	MPI_Finalize();
