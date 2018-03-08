@@ -1,4 +1,5 @@
 from distutils.core import setup, Extension
+import numpy as np
 
 PETSC_ROOT='/sw/taurus/libraries/petsc/3.8.3-gpu-complex'
 
@@ -13,4 +14,6 @@ module1 = Extension('p2p',
 setup (name = 'p2p',
        version = '1.0',
        description = 'This is a package to call PetSC from Python',
-       ext_modules = [module1])
+       ext_modules = [module1],
+       include_dirs = [np.get_include()])
+
