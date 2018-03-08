@@ -1,7 +1,11 @@
 # module load openmpi/2.1.0-gnu6.3
 # module load intel
 module load gcc/5.5.0
-module load openmpi/3.0.0-gnu5.5
+# MPI needed to run:
+# module load openmpi/3.0.0-gnu5.5
+# MPI needed to compile (for now), won't run:
+module unload openmpi/3.0.0-gnu5.5
+module load openmpi/2.1.0-gnu6.3
 module add  python/2.7.5-scipy
 
 export CC="mpicc -pthread"

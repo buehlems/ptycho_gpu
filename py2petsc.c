@@ -335,9 +335,9 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
 // MPI part
 #include <mpi.h>
 #include <stdio.h>
-// #include <petscsys.h>
+#include <petscsys.h>
 
-// #include "ptycho_petsc.h"
+#include "ptycho_petsc.h"
 
 
 int mpiHelloWorld() {
@@ -362,15 +362,16 @@ int mpiHelloWorld() {
 
 /* // petsc */
 
-/* 	ptycho_setup_petsc(argc, argv); */
+	// ptycho_setup_petsc(argc, argv);
+	ptycho_setup_petsc(NULL, NULL);
 
-/* 	ptycho_read_and_fill_Matrix(); */
+	ptycho_read_and_fill_Matrix();
 
-/* 	ptycho_read_and_set_RHS(); */
+	ptycho_read_and_set_RHS();
 
-/* 	ptycho_petsc_solve(); */
+	ptycho_petsc_solve();
 
-/* 	ptycho_petsc_get_solution (); */
+	ptycho_petsc_get_solution ();
 
 // Finalize the MPI environment.
 	MPI_Finalize();
