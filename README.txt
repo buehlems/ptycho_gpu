@@ -4,3 +4,7 @@ create_test_matrices.py: test program in Python
 ptychopy_1.py: needed by create_test_matrices.py
 py2petsc.c: the C source code
 setup_p2p.py: needed by build_p2p.sh
+
+Extended by MPI. Run with slurm e.g.:
+salloc --nodes=1 --tasks-per-node=1  --time=00:05:00
+srun python create_test_matrices.py

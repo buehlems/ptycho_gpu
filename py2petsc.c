@@ -7,6 +7,8 @@
 // #include "/usr/lib64/python2.6/site-packages/numpy/core/include/numpy/arrayobject.h"
 #include <numpy/arrayobject.h>
 
+int mpiHelloWorld(void);
+
 /* ==== Allocate a double *vector (vec of pointers) ======================
     Memory is Allocated!  See void free_Carray(double ** )                  */
 double **ptrvector(long n)  {
@@ -99,6 +101,93 @@ double **pymatrix_to_Carrayptrs(PyArrayObject *arrayin)  {
 	return c;
 }
 
+static PyObject *printNPY(PyObject *self, PyObject *args)
+{
+    printf("NPY_BOOL=%d\n",NPY_BOOL);
+    printf("NPY_BYTE=%d\n",NPY_BYTE);  
+    printf("NPY_INT8=%d\n",NPY_INT8);
+    printf("NPY_SHORT=%d\n",NPY_SHORT);
+    printf("NPY_INT16=%d\n",NPY_INT16);
+    printf("NPY_INT=%d\n",NPY_INT);
+    printf("NPY_INT32=%d\n",NPY_INT32);
+    printf("NPY_LONG=%d\n",NPY_LONG);
+    printf("NPY_LONGLONG=%d\n",NPY_LONGLONG);
+    printf("NPY_INT64=%d\n",NPY_INT64);
+    printf("NPY_UBYTE=%d\n",NPY_UBYTE);
+    printf("NPY_UINT8=%d\n",NPY_UINT8);
+    printf("NPY_USHORT=%d\n",NPY_USHORT);
+    printf("NPY_UINT16=%d\n",NPY_UINT16);
+    printf("NPY_UINT=%d\n",NPY_UINT);
+    printf("NPY_UINT32=%d\n",NPY_UINT32);
+    printf("NPY_ULONG=%d\n",NPY_ULONG);
+    printf("NPY_ULONGLONG=%d\n",NPY_ULONGLONG);
+    printf("NPY_UINT64=%d\n",NPY_UINT64);
+    // printf("NPY_HALF=%d\n",NPY_HALF);
+    // printf("NPY_FLOAT16=%d\n",NPY_FLOAT16);
+    printf("NPY_FLOAT=%d\n",NPY_FLOAT);
+    printf("NPY_FLOAT32=%d\n",NPY_FLOAT32);
+    printf("NPY_DOUBLE=%d\n",NPY_DOUBLE);
+    printf("NPY_FLOAT64=%d\n",NPY_FLOAT64);
+    printf("NPY_LONGDOUBLE=%d\n",NPY_LONGDOUBLE);
+    printf("NPY_CFLOAT=%d\n",NPY_CFLOAT);
+    printf("NPY_COMPLEX64=%d\n",NPY_COMPLEX64);
+    printf("NPY_CDOUBLE=%d\n",NPY_CDOUBLE);
+    printf("NPY_COMPLEX128=%d\n",NPY_COMPLEX128);
+    printf("NPY_CLONGDOUBLE=%d\n",NPY_CLONGDOUBLE);
+    // printf("NPY_DATETIME=%d\n",NPY_DATETIME);
+    // printf("NPY_TIMEDELTA=%d\n",NPY_TIMEDELTA);
+    printf("NPY_STRING=%d\n",NPY_STRING);
+    printf("NPY_UNICODE=%d\n",NPY_UNICODE);
+    printf("NPY_OBJECT=%d\n",NPY_OBJECT);
+    printf("NPY_VOID=%d\n",NPY_VOID);
+    printf("NPY_INTP=%d\n",NPY_INTP);
+    printf("NPY_UINTP=%d\n",NPY_UINTP);
+    // printf("NPY_MASK=%d\n",NPY_MASK);
+    printf("NPY_DEFAULT_TYPE=%d\n",NPY_DEFAULT_TYPE);
+    printf("NPY_NTYPES=%d\n",NPY_NTYPES);
+    printf("NPY_NOTYPE=%d\n",NPY_NOTYPE);
+    printf("NPY_USERDEF=%d\n",NPY_USERDEF       );
+
+    printf("\n");
+    
+    printf("NPY_BOOLLTR=%c\n",    NPY_BOOLLTR);
+    printf("NPY_BYTELTR=%c\n",NPY_BYTELTR);
+    printf("NPY_UBYTELTR=%c\n",	NPY_UBYTELTR);
+    printf("NPY_SHORTLTR=%c\n",NPY_SHORTLTR);
+    printf("NPY_USHORTLTR=%c\n",NPY_USHORTLTR);
+    printf("NPY_INTLTR=%c\n",NPY_INTLTR);
+    printf("NPY_UINTLTR=%c\n",NPY_UINTLTR);
+    printf("NPY_LONGLTR=%c\n",NPY_LONGLTR);
+    printf("NPY_ULONGLTR=%c\n",NPY_ULONGLTR);
+    printf("NPY_LONGLONGLTR=%c\n",NPY_LONGLONGLTR);
+    printf("NPY_ULONGLONGLTR=%c\n",NPY_ULONGLONGLTR);
+    // printf("NPY_HALFLTR=%c\n",NPY_HALFLTR);
+    printf("NPY_FLOATLTR=%c\n",NPY_FLOATLTR);
+    printf("NPY_DOUBLELTR=%c\n",NPY_DOUBLELTR);
+    printf("NPY_LONGDOUBLELTR=%c\n",NPY_LONGDOUBLELTR);
+    printf("NPY_CFLOATLTR=%c\n",NPY_CFLOATLTR);
+    printf("NPY_CDOUBLELTR=%c\n",NPY_CDOUBLELTR);
+    printf("NPY_CLONGDOUBLELTR=%c\n",NPY_CLONGDOUBLELTR);
+    printf("NPY_DATETIMELTR=%c\n",NPY_DATETIMELTR);
+    printf("NPY_TIMEDELTALTR=%c\n",NPY_TIMEDELTALTR);
+    printf("NPY_OBJECTLTR=%c\n",NPY_OBJECTLTR);
+    printf("NPY_STRINGLTR=%c\n",NPY_STRINGLTR);
+    printf("NPY_VOIDLTR=%c\n",NPY_VOIDLTR);
+    printf("NPY_INTPLTR=%c\n",NPY_INTPLTR);
+    printf("NPY_UINTPLTR=%c\n",NPY_UINTPLTR);
+    printf("NPY_GENBOOLLTR=%c\n",NPY_GENBOOLLTR);
+    printf("NPY_SIGNEDLTR=%c\n",NPY_SIGNEDLTR);
+    printf("NPY_UNSIGNEDLTR=%c\n",NPY_UNSIGNEDLTR);
+    printf("NPY_FLOATINGLTR=%c\n",NPY_FLOATINGLTR);
+    printf("NPY_COMPLEXLTR=%c\n",NPY_COMPLEXLTR);
+    return Py_BuildValue("i", 0);
+    
+}
+
+
+// run with slrum:
+// salloc --nodes=1 --tasks-per-node=1  --time=00:05:00
+// srun python create_test_matrices.py
 static PyObject *py2petsc(PyObject *self, PyObject *args)
 {
 
@@ -238,91 +327,56 @@ static PyObject *py2petsc(PyObject *self, PyObject *args)
     free_Carrayptrs(B);
     free_Carrayptrs(X);
 
+    mpiHelloWorld();
+
     return PyArray_Return(pyX);
 }
 
-static PyObject *printNPY(PyObject *self, PyObject *args)
-{
-    printf("NPY_BOOL=%d\n",NPY_BOOL);
-    printf("NPY_BYTE=%d\n",NPY_BYTE);  
-    printf("NPY_INT8=%d\n",NPY_INT8);
-    printf("NPY_SHORT=%d\n",NPY_SHORT);
-    printf("NPY_INT16=%d\n",NPY_INT16);
-    printf("NPY_INT=%d\n",NPY_INT);
-    printf("NPY_INT32=%d\n",NPY_INT32);
-    printf("NPY_LONG=%d\n",NPY_LONG);
-    printf("NPY_LONGLONG=%d\n",NPY_LONGLONG);
-    printf("NPY_INT64=%d\n",NPY_INT64);
-    printf("NPY_UBYTE=%d\n",NPY_UBYTE);
-    printf("NPY_UINT8=%d\n",NPY_UINT8);
-    printf("NPY_USHORT=%d\n",NPY_USHORT);
-    printf("NPY_UINT16=%d\n",NPY_UINT16);
-    printf("NPY_UINT=%d\n",NPY_UINT);
-    printf("NPY_UINT32=%d\n",NPY_UINT32);
-    printf("NPY_ULONG=%d\n",NPY_ULONG);
-    printf("NPY_ULONGLONG=%d\n",NPY_ULONGLONG);
-    printf("NPY_UINT64=%d\n",NPY_UINT64);
-    // printf("NPY_HALF=%d\n",NPY_HALF);
-    // printf("NPY_FLOAT16=%d\n",NPY_FLOAT16);
-    printf("NPY_FLOAT=%d\n",NPY_FLOAT);
-    printf("NPY_FLOAT32=%d\n",NPY_FLOAT32);
-    printf("NPY_DOUBLE=%d\n",NPY_DOUBLE);
-    printf("NPY_FLOAT64=%d\n",NPY_FLOAT64);
-    printf("NPY_LONGDOUBLE=%d\n",NPY_LONGDOUBLE);
-    printf("NPY_CFLOAT=%d\n",NPY_CFLOAT);
-    printf("NPY_COMPLEX64=%d\n",NPY_COMPLEX64);
-    printf("NPY_CDOUBLE=%d\n",NPY_CDOUBLE);
-    printf("NPY_COMPLEX128=%d\n",NPY_COMPLEX128);
-    printf("NPY_CLONGDOUBLE=%d\n",NPY_CLONGDOUBLE);
-    // printf("NPY_DATETIME=%d\n",NPY_DATETIME);
-    // printf("NPY_TIMEDELTA=%d\n",NPY_TIMEDELTA);
-    printf("NPY_STRING=%d\n",NPY_STRING);
-    printf("NPY_UNICODE=%d\n",NPY_UNICODE);
-    printf("NPY_OBJECT=%d\n",NPY_OBJECT);
-    printf("NPY_VOID=%d\n",NPY_VOID);
-    printf("NPY_INTP=%d\n",NPY_INTP);
-    printf("NPY_UINTP=%d\n",NPY_UINTP);
-    // printf("NPY_MASK=%d\n",NPY_MASK);
-    printf("NPY_DEFAULT_TYPE=%d\n",NPY_DEFAULT_TYPE);
-    printf("NPY_NTYPES=%d\n",NPY_NTYPES);
-    printf("NPY_NOTYPE=%d\n",NPY_NOTYPE);
-    printf("NPY_USERDEF=%d\n",NPY_USERDEF       );
+// MPI part
+#include <mpi.h>
+#include <stdio.h>
+// #include <petscsys.h>
 
-    printf("\n");
-    
-    printf("NPY_BOOLLTR=%c\n",    NPY_BOOLLTR);
-    printf("NPY_BYTELTR=%c\n",NPY_BYTELTR);
-    printf("NPY_UBYTELTR=%c\n",	NPY_UBYTELTR);
-    printf("NPY_SHORTLTR=%c\n",NPY_SHORTLTR);
-    printf("NPY_USHORTLTR=%c\n",NPY_USHORTLTR);
-    printf("NPY_INTLTR=%c\n",NPY_INTLTR);
-    printf("NPY_UINTLTR=%c\n",NPY_UINTLTR);
-    printf("NPY_LONGLTR=%c\n",NPY_LONGLTR);
-    printf("NPY_ULONGLTR=%c\n",NPY_ULONGLTR);
-    printf("NPY_LONGLONGLTR=%c\n",NPY_LONGLONGLTR);
-    printf("NPY_ULONGLONGLTR=%c\n",NPY_ULONGLONGLTR);
-    // printf("NPY_HALFLTR=%c\n",NPY_HALFLTR);
-    printf("NPY_FLOATLTR=%c\n",NPY_FLOATLTR);
-    printf("NPY_DOUBLELTR=%c\n",NPY_DOUBLELTR);
-    printf("NPY_LONGDOUBLELTR=%c\n",NPY_LONGDOUBLELTR);
-    printf("NPY_CFLOATLTR=%c\n",NPY_CFLOATLTR);
-    printf("NPY_CDOUBLELTR=%c\n",NPY_CDOUBLELTR);
-    printf("NPY_CLONGDOUBLELTR=%c\n",NPY_CLONGDOUBLELTR);
-    printf("NPY_DATETIMELTR=%c\n",NPY_DATETIMELTR);
-    printf("NPY_TIMEDELTALTR=%c\n",NPY_TIMEDELTALTR);
-    printf("NPY_OBJECTLTR=%c\n",NPY_OBJECTLTR);
-    printf("NPY_STRINGLTR=%c\n",NPY_STRINGLTR);
-    printf("NPY_VOIDLTR=%c\n",NPY_VOIDLTR);
-    printf("NPY_INTPLTR=%c\n",NPY_INTPLTR);
-    printf("NPY_UINTPLTR=%c\n",NPY_UINTPLTR);
-    printf("NPY_GENBOOLLTR=%c\n",NPY_GENBOOLLTR);
-    printf("NPY_SIGNEDLTR=%c\n",NPY_SIGNEDLTR);
-    printf("NPY_UNSIGNEDLTR=%c\n",NPY_UNSIGNEDLTR);
-    printf("NPY_FLOATINGLTR=%c\n",NPY_FLOATINGLTR);
-    printf("NPY_COMPLEXLTR=%c\n",NPY_COMPLEXLTR);
-    return Py_BuildValue("i", 0);
-    
+// #include "ptycho_petsc.h"
+
+
+int mpiHelloWorld() {
+
+// Initialize the MPI environment
+
+	MPI_Init(NULL, NULL);
+
+	int npes;
+	int rank;
+	MPI_Comm_size(MPI_COMM_WORLD, &npes);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+// Get the name of the processor
+
+	char processor_name[MPI_MAX_PROCESSOR_NAME];
+	int name_len;
+	MPI_Get_processor_name(processor_name, &name_len);
+
+// Print off a hello world message
+	printf("petsc_driver on %s, rank %d, Number of processes %d\n", processor_name, rank, npes);
+
+/* // petsc */
+
+/* 	ptycho_setup_petsc(argc, argv); */
+
+/* 	ptycho_read_and_fill_Matrix(); */
+
+/* 	ptycho_read_and_set_RHS(); */
+
+/* 	ptycho_petsc_solve(); */
+
+/* 	ptycho_petsc_get_solution (); */
+
+// Finalize the MPI environment.
+	MPI_Finalize();
+	return(0);
 }
+
 
 
 static PyMethodDef p2pMethods[] = {

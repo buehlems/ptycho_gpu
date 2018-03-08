@@ -1,5 +1,7 @@
-module load openmpi/2.1.0-gnu6.3
-module load intel
+# module load openmpi/2.1.0-gnu6.3
+# module load intel
+module load gcc/5.5.0
+module load openmpi/3.0.0-gnu5.5
 module add  python/2.7.5-scipy
 
 export CC="mpicc -pthread"
