@@ -1,1 +1,6 @@
-module add    python/2.7.5-scipy
+module load openmpi/2.1.0-gnu6.3
+module load intel
+module add  python/2.7.5-scipy
+
+export CC="mpicc -pthread"
+export LDSHARED="mpicc -pthread -shared"
