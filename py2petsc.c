@@ -402,7 +402,7 @@ int mpiPETSc(PetscScalar * Adata,int * Aindex,int * Aiptr,double ** B, PetscScal
 
 	ptycho_read_and_fill_Matrix(Adata,Aindex,Aiptr,rA);
 
-	ptycho_read_and_set_RHS((PetscScalar **) B);
+	ptycho_read_and_set_RHS(B);
 
 	ptycho_petsc_solve();
 

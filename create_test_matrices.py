@@ -3,7 +3,7 @@ from ptychopy_1 import make_sp_cof
 import numpy as np
 import p2p as p2p
 
-B = np.reshape(np.asarray(range(16))*0.5,[4,4])
+B = np.reshape(np.asarray(range(24))*0.5,[6,4])
 A = make_sp_cof(2,3,range(2),0.5*np.reshape(range(1,7),[2,3]),2)
 X = np.zeros([A.shape[1],2*B.shape[1]])
 A_data = np.zeros((2 * len(A.data)))
