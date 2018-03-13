@@ -1,0 +1,230 @@
+HOWTO run PETSC on GPU and MPI (message passing interface -> several GPUs / CPUs):
+
+--------------- GPU ------------
+
+Switching between CPU and GPU is easy with PETSC. For each variable used, we have to set its type to a CUDA type.
+This means, the variable will be initialized as CUDA variable on the GPU (NVIDIA only! for AMD graphic cards,
+another PETSC needs to be installed using OpenCL). The PETSC solver will automatically recognise that its input
+data is on the GPU and use according GPU solvers.
+
+To set a variable type to CUDA, do the following:
+
+1) Add
+#define USE_GPU
+to the beginning of your file (directly after the includes).
+
+2) After creating a matrix or vector with PETSC ("MatCreate", "VecCreate", ... (many others for MPI, see later))
+set its type ("MatSetType", "VecSetType") as demonstrated in the following two examples:
+
+a) set the type of a matrix
+
+MatCreate(PETSC_COMM_WORLD,&A);		// this creates a matrix, A should be a variable of type "Mat" (PETSC)
+#ifdef USE_GPU				// this is an if-statement for the compiler. Only if "USE_GPU" is defined, the statement is called
+	MatSetType(A, MATAIJCUSP);	// this sets the type of a matrix, for a list of types see below
+#endif					// end of if-statement
+
+b) set the type of a vector
+
+VecCreate (PETSC_COMM_WORLD, &rhs);	// creates a vector, rhs should be a variable of type "Vec" (PETSC)
+#ifdef USE_GPU
+	VecSetType(rhs, VECCUSP);	// sets the type of the vector
+#endif
+
+A list of types can be found on:
+Matrices: http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatType.html#MatType
+Vectors: http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecType.html#VecType
+
+MATAIJCUSP	// sparse matrix using CUSP (CUDA sparse -> on GPU)
+MATDENSE	// dense matrix (not on GPU! no data type for dense matrices on GPU found -> maybe as vector of vectors)
+VECCUSP		// vector using CUSP ( -> on GPU)
+
+For switching between GPU and CPU simply comment the #define line of step 1)
+
+
+
+
+--------------- MPI --------------
+
+Using MPI (message passing interface) we can run parallel processes on several CPUs / GPUs. There are three things
+to consider when running code with MPI. First, the two easy ones:
+
+1) Floating point arithmetic is not associative! E.g., consider large a and small b. Then a+(b+b) may return another result
+than (a+b)+b due to rounding after the + operation. This means that solving linear systems (or other things...) using parallel
+implementations can result in (most times slightly) different results, since the arithmetic may be performed in different order.
+
+2) The number of CPUs (and GPUs) used is set as parameter when running the code. Exemplary on Taurus the Slurm Workload Manager
+is used. Allocating a Slurm job is done using "salloc" which by default allocates one CPU (i.e., MPI will use one process). We used
+e.g., the command
+salloc -x taurusi2108 -p gpu2-interactive --gres=gpu:1 --time=00:10:00
+to allocate a Slurm job with one GPU. With an additonal option "-c", we can control the number of CPUs that should be allocated.
+A description of salloc can be found on https://slurm.schedmd.com/salloc.html.
+
+After allocating, a program can be run using "srun". srun uses by default the maximum number of available CPUs (i.e., the number of
+CPUs allocated with salloc). However, we can also set the option "-c" to explicitly set the number of CPUs (must of cause be smaller or
+equal the number of allocated CPUs).
+A description of srun can be found on https://slurm.schedmd.com/srun.html
+
+Note: On other clusters this may differ depending on the used Workload Manager!
+
+3) Now lets come to the interesting part: How to implement MPI in our code. This basically follows three steps:
+a) Initialize MPI
+b) Perform code parallel on the CPUs
+c) Finalize MPI
+
+a) + c) First the easy ones again: MPI is initialized (openMPI in C) using the commands
+
+int npes;				// integer to store the number of processes
+int rank;				// integer to store the process rank
+MPI_Init(NULL, NULL);			// this basically starts the MPI process and sets up all CPUs
+MPI_Comm_size(MPI_COMM_WORLD, &npes);	// this fills npes with the number of processes
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);	// this fills rank with the rank of the process
+
+Here npes and rank are integers to store the number of processes and the rank of a process (more on this in two lines). The command
+MPI_Init sets up all CPUs and starts all processes. This means (and this is important!): From now on, every line of code will run on
+each process in parallel! And this means, from now on we need to be carefull what we are doing in which process. Therefore, the first
+thing to do is, get the number of processes and the rank of the actual process (this is kind of the unique identifier number). This
+is done using MPI_Comm_size and MPI_Comm_rank. The variable npes will afterwards contain the number of parallel running processes
+(i.e., usually the number of used CPUs since we run one process per CPU). However, since these two lines already run on all processes
+in parallel, the variable "rank" will be different for each CPU. (Each CPU has a different rank, basically a number between 0 and npes-1).
+
+After MPI is initialized we can run our code in parallel on the CPUs. When all calculations are finished we need to call
+
+MPI_Finalize();
+
+to finish parallel processing.
+
+b) Now to the hard part: Performing code in parallel. As we have seen before, there might be variables that have a different value on
+different CPUs such as the variable "rank". However, now it gets more complicated. There can also be variables, such as a huge matrix
+A, that are scattered over all processes. This means, on each CPU only part of it is stored. Whenever we access the matrix (or part of
+it), we need to make sure that the process actually has access to the part we want to read / write on. To do all this, we need to know
+the following things:
+
+I) How to run different stuff on different processes
+II) How to create matrices and vectors that are scattered between the processes and how to use them in solvers
+III) How to find out, which part of a matrix / vector a process has access to
+IV) How to transfer data between different processes
+
+I) How to run different stuff on different processes
+This one is pretty easy: We already have our variable "rank" that tells us where we are. Now just combine this with e.g. an if:
+if(rank == 0){
+	... do some stuff...
+}else{
+	... do some other stuff...
+}
+
+II) How to create matrices and vectors that are scattered between the processes and how to use them in solvers
+Here, PETSC helps us a lot. Lets just have a look at the creation of a matrix and a vector.
+
+VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, M, &rhs);	// create vector of size M
+MatCreate(PETSC_COMM_WORLD,&A);				// create a matrix
+MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,M, N);		// set matrix size to M x N
+
+The vector routing "VecCreateMPI" can be directly used to create a vector for MPI usage. Here the first parameter is the MPI commuincator.
+The second parameter "PETSC_DECIDE" allows PETSC do decide which part of the vector will be put on which CPU process. For the matrix, first a
+standard creation routine "MatCreate" is used and afterwards when the size is set with "MatSetSizes". Again the two parameters "PETSC_DECIDE"
+allows PETSC to scatter the matrix over all processes. The parameters can be exchanged giving an explicit local size (however, PETSC_DECIDE will
+usually give a good result).
+There are several other routines to create matrices: http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/
+or vectors: http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/
+Using scattered matrices and vectors in solvers is no problem. The solver will automatically detect that the data is scattered and run on each
+process in parallel. The returned result will also be scattered among the processes.
+
+III) How to find out, which part of a matrix / vector a process has access to
+Consider we want to fill values into the created vector rhs with the code
+for(k=0; k<M; k++){
+	VecSetValues(rhs, 1, k, k, INSERT_VALUES);	\\ creates a vector (0,1,...,M-1)
+}
+This for loop will run on all processes. However, each process only has a small part of the scattered vector rhs at hand. This means, the
+processes will try tro write data into parts of the vector which they dont have access to. Hence, we need to find out which part of the
+vector we are allowed to write on. Therefore, we can use the functions
+
+int m, n;
+VecGetOwnershipRange(rhs,&m,&n);	(http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetOwnershipRange.html)
+MatGetOwnershipRange(A,&m,&n); 		(http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetOwnershipRange.html)
+
+These functions take a vector / matrix and two pointer on integers as argument. The integers are then filled with the index of the first
+element / row (m) and one more(!!) than the index of the last element / row (n). Again note: This code runs on all processes and returns
+different values for each process. Having these variables at hand, we can simply use them to write only on the part of the variable that
+we have access to:
+for(k=m; k<n; k++){					\\ note the lower and upper we use here
+	VecSetValues(rhs, 1, k, k, INSERT_VALUES);	\\ creates a vector (0,1,...,M-1)
+}
+Note 1: Each vector has a local index and a global index. The local indices of rhs is always 0,...,n-m-1 while its global indices are m,...,n.
+If we set the data with VecSetValues, this function is aware of the global nature of rhs and needs the global index as input argument.
+Hence, with PETSC functions always use the global index to set data. However, reading rhs[n] will fail since on each CPU, "rhs" is a
+pointer with n-m elements and thus rhs[n] is out of range. Use the local index to read the data.
+Note 2: According to the PETSC homepage, each process can write data to each part of the vector even if it is not in its local range.
+However, this is not practical as it might result in unkown behavior or slow performance due to communication overhead.
+Note 3: There are also functions to get the local size of the data which is usefull for the range of the local indices:
+VecGetLocalSize(rhs,&m);		(http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetLocalSize.html)
+MatGetLocalSize(A,&m,&n);		(http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetLocalSize.html)
+
+IV) How to transfer data between different processes
+Sometimes it is necessary to transfer data from one to another process, e.g., when we want to return a solution that is scattered over all
+processes. However, note that transfering data between all processes should be limited since the involved CPUs is blocked until the data
+transfer is finished. There are several functions to transfer data between processes. The openMPI homepage has a nice description and
+small examples on how to use these functions, thus here is only a short description with the links to openmpi:
+
+MPI_Send(buffer,n,type,dest,tag,comm);	\\ sends n elements of type "type" in buffer (pointer) to the process with rank==dest. Use an
+					\\ integer tag to uniquely identify the send message. comm is the communicator (PETSC_COMM_WORLD)
+					\\ This function has to be called on the process that should send the data!
+					\\ https://www.open-mpi.org/doc/v2.0/man3/MPI_Send.3.php
+[buffer,status] = MPI_Recv(n,type,source,tag,comm);
+					\\ receives (at most) n elements of type "type" from the source (=rank of the sender) and writes 
+					\\ them into "buffer". The message is identified by its tag and a status is written into "status"
+					\\ This function has to be called on the process that should receive the data!
+					\\ https://www.open-mpi.org/doc/v2.0/man3/MPI_Recv.3.php
+count = MPI_Get_count(status,type);	\\ Whenever it is unclear how many elements are send (i.e., n was only an upper bound), this
+					\\ command returns the exact number of send elements. Status and type should be same as in MPI_Recv
+					\\ https://www.open-mpi.org/doc/v2.0/man3/MPI_Get_count.3.php
+
+The function above are used to communicate between two processes and thus require to only run on the involved CPUs (use if rank== to do so).
+The following functions perform a communication between all processes and thus should run on all of them (blocking all of them!).
+
+MPI_Scatter(sbuf,n,stype,rbuf,m,rtype,root,comm);
+					\\ This function scatteres the data in "sbuf" on all processes. n elements of type "stype" are send
+					\\ to each process (the first n to rank==0, the second n to rank==1, ...). The data is put into the
+					\\ receive buffer "rbuf" that holds space for m elements of type "rtype". The root is the rank of the
+					\\ process that should send the data (i.e., the one that has access to it.
+					\\ https://www.open-mpi.org/doc/v2.0/man3/MPI_Gather.3.php
+MPI_Gather(sbuf,n,stype,rbuf,m,rtype,root,comm);
+					\\ This is the counterpart to scatter. All processes send n elements of type "stype" in "sbuf" to the
+					\\ root process. The data is put into "rbuf". m is the number of elements of type "rtype" receive per
+					\\ process.
+					\\ https://www.open-mpi.org/doc/v2.0/man3/MPI_Gather.3.php
+
+Note that we need to allocate memory for rbuf before calling scatter or gather. There are more functions that already can perform simple
+arithmetics (such as taking maximum or minimum) on the send data (MPI_Reduce). Other functions can receive data from all processes and send
+the result back to all processes at once (MPI_allgather, MPI_allreduce). More information can be found in this two tutorials:
+http://mpitutorial.com/tutorials/mpi-scatter-gather-and-allgather/
+http://mpitutorial.com/tutorials/mpi-reduce-and-allreduce/
+
+Last but not least, some comments on optimizing the code with MPI:
+- only send data to the processes, that they realy need!
+	Bad: By now we calculate all non-zero elements of A, send it to all processes and fill in the local data
+	Better: only send the non-zero elements according to the local range of A to each process
+- start the MPI process as soon as possible to use the full power of all CPUs
+	Bad: By now we do some pre-calculations in Python, then run C and start MPI there
+	Better: Start MPI already in Python and use it to paralize the pre-calculations
+	Minimal example for MPI in Python: https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/Submitting_a_single_job_with_Python_(multiple_nodes)
+- In the end the code should somehow look like this:
+	int npes;
+	int rank;
+	MPI_Init(NULL, NULL);
+	MPI_Comm_size(MPI_COMM_WORLD, &npes);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	if rank==0
+		...do some pre-calculations that are necessary and cannot be paralized (e.g., load data, calculate matrix sizes)...
+	end
+
+	... create vectors and matrices, scatter them to all processes ...	
+
+	MPI_Scatter(...);	\\ here we send all data that is necessary to fill in the matrices and vectors
+
+	... fill in data on each process ...
+
+	... solve your problem ...
+
+	MPI_Gather(...);	\\ get your solution back to the root process
+
+	MPI_Finalize();		\\ finished!
