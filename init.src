@@ -15,5 +15,7 @@ module load petsc/3.8.3-gpu-complex
 
 module add  python/2.7.5-scipy
 
+module load mkl/2017
+
 export CC="mpicc -pthread"
 export LDSHARED="mpicc -pthread -shared"
