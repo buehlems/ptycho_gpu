@@ -137,7 +137,7 @@ void ptycho_read_and_set_RHS (double ** B) {
 	for (i=0; i<ROWS; i++) {
 		indices[i] = i;
 		rhs_val[i] = (PetscScalar) B[1][i];          // convert double to double complex //use first only one column of B (vector case)
-        printf("B[1][%d]=%lf %lf\n",i,B[1][i],B[1][i+1]);
+        printf("B[%d][1]=%lf %lf\n",i,B[i][1],B[i+1][1]);
 	}
    VecSetValues (rhs, ROWS, indices, rhs_val, INSERT_VALUES);
 
@@ -271,15 +271,16 @@ void ptycho_petsc_solve (void) {
 void ptycho_petsc_get_solution (PetscScalar ** X) {
 	int   i;
 
-    PetscScalar *x =X[0]; //use first only one column of X (vector case)
+   // PetscScalar *x =X[1]; //use first only one column of X (vector case)
 
 
    KSPGetSolution (ksp, &sol);
 
-   VecGetArray(sol, &x);
+   VecGetArray(sol, &X[1]);
 
-   for (i=0; i<30; i++) {
-   	printf("solution value %d %f + i%f \n",i,creal(x[i]),cimag(x[i]));
+   for (i=0; i<MIN(COLS,30); i++) {
+   	printf("solution value %d %f + i%f \n",i,creal(X[1][i]),cimag(X[1][i]));
+   //printf("solution value %d %f + i%f \n",i,creal(x[i]),cimag(x[i]));
    }
 
 }
